@@ -98,6 +98,31 @@ def delete(event, context):
 
 def update(event, context):
     print(event)
+    #event['ResourceProperties']
+    # response = client.modify_vpc_endpoint(
+    #     VpcEndpointId=event['PhysicalResourceId'],
+    #     ResetPolicy=True|False,
+    #     PolicyDocument='string',
+    #     AddRouteTableIds=[
+    #         'string',
+    #     ],
+    #     RemoveRouteTableIds=[
+    #         'string',
+    #     ],
+    #     AddSubnetIds=[
+    #         'string',
+    #     ],
+    #     RemoveSubnetIds=[
+    #         'string',
+    #     ],
+    #     AddSecurityGroupIds=[
+    #         'string',
+    #     ],
+    #     RemoveSecurityGroupIds=[
+    #         'string',
+    #     ],
+    #     PrivateDnsEnabled=True|False
+    # )
     return
 
 def lambda_handler(event, context):
@@ -108,5 +133,5 @@ def lambda_handler(event, context):
         delete(event, context)
     else:
         update(event, context)
-        send(event, context, SUCCESS, {})
+        send(event, context, SUCCESS, {},"Updated success", event['PhysicalResourceId'])
     return
