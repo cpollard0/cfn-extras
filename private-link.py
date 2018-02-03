@@ -84,9 +84,9 @@ def create(vars,region,event,context):
     except:
         send(event, context, FAILED,{})
 
-def delete(stack_name, resource_id):
-    response = CFN.describe_stack_resource(StackName=stack_name,LogicalResourceId=resource_id)
-    print(response)
+def delete(event, context):
+    print(event)
+    send(event, context, SUCCESS,{})
 
 def update(event, context):
     response = CFN.describe_stack_resource(StackName=stack_name,LogicalResourceId=resource_id)
@@ -98,8 +98,7 @@ def lambda_handler(event, context):
             create(event['ResourceProperties'], parse_region_from_stack(event['StackId']),event,context)
                 
     elif event['RequestType'] == 'Delete':
-        delete(event['StackId'], event['LogicalResourceId'])
-        send(event, context, SUCCESS,{})
+        delete(event, context)
     else:        
         update(event, context)
         send(event, context, SUCCESS,{})
