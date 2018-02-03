@@ -46,14 +46,14 @@ def validate_vars(resource_properties, event, context):
     optional_vars = ['securityGroupIds','routeTableIds','subnets']
     for var in mandatory_vars:
         if var not in resource_properties:
-            send(event, context, FAILED,{}, "Missing " + var)
+            send(event, context, FAILED, {}, "Missing " + var)
             return False
     if resource_properties['serviceName'] not in VALID_SERVICES:
-        send(event, context, FAILED,{}, "Invalid service name")
+        send(event, context, FAILED, {}, "Invalid service name")
         return False
     for var in resource_properties:
         if var not in mandatory_vars and var not in optional_vars:
-            send(event, context, FAILED,{}, "Invalid variable " + var)
+            send(event, context, FAILED, {}, "Invalid variable " + var)
             return False
     return True
 
@@ -83,13 +83,13 @@ def create(vars,region,event,context):
         print(response)
         send(event, context, SUCCESS, {}, "Resource successfully created", response['VpcEndpoint']['VpcEndpointId'])
     except:
-        send(event, context, FAILED,{})
+        send(event, context, FAILED, {})
 
 def delete(event, context):
     response = ""
     try:
         response = EC2.delete_vpc_endpoints(
-            VpcEndpointIds=event['PhysicalResourceId']
+            VpcEndpointIds=[event['PhysicalResourceId']]
         )
         send(event, context, SUCCESS, {}, "Resource deleted")
     except ClientError as e:
@@ -97,17 +97,16 @@ def delete(event, context):
         send(event, context, FAILED, {})
 
 def update(event, context):
-    response = CFN.describe_stack_resource(StackName=stack_name,LogicalResourceId=resource_id)
-    print(response)
+    print(event)
+    return
 
 def lambda_handler(event, context):
     if event['RequestType'] == 'Create':
-        if validate_vars(event['ResourceProperties'],event,context):
-            create(event['ResourceProperties'], parse_region_from_stack(event['StackId']),event,context)
-                
+        if validate_vars(event['ResourceProperties'], event, context):
+            create(event['ResourceProperties'], parse_region_from_stack(event['StackId']), event, context)
     elif event['RequestType'] == 'Delete':
         delete(event, context)
-    else:        
+    else:
         update(event, context)
-        send(event, context, SUCCESS,{})
-    return  
+        send(event, context, SUCCESS, {})
+    return
