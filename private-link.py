@@ -1,6 +1,7 @@
 import boto3 
 import time
 from botocore.vendored import requests
+from botocore.exceptions import ClientError
 import json
 
 SUCCESS = "SUCCESS"
