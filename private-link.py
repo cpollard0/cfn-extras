@@ -97,32 +97,40 @@ def delete(event, context):
         send(event, context, FAILED, {})
 
 def update(event, context):
-    print(event)
+    print(event['ResourceProperties'])
+    print(event['OldResourceProperties'])
+    # convert dictionaries for properties to sets for easy diff
+    updated_properties = event['ResourceProperties']
+    old_properties = event['OldResourceProperties']
+    added_subnets = []
+    removed_subnets = []
+    added_security_group_ids = []
+    removed_security_group_ids = []
+    added_route_table_ids = []
+    removed_route_table_ids = []
+    if 'subnets' in updated_properties:
+        added_subnets = list(set(updated_properties['subnets']) - set(old_properties['subnets']))
+        removed_subnets = list(set(old_properties['subnets']) - set(updated_properties['subnets']))
+    if 'securityGroupIds' in updated_properties:
+        added_security_group_ids = list(set(updated_properties['securityGroupIds']) - set(old_properties['securityGroupIds']))
+        removed_security_group_ids = list(set(old_properties['securityGroupIds']) - set(updated_properties['securityGroupIds']))
+    if 'routeTableIds' in updated_properties:
+        added_route_table_ids = list(set(updated_properties['routeTableIds']) - set(old_properties['routeTableIds']))
+        removed_route_table_ids = list(set(old_properties['routeTableIds']) - set(updated_properties['routeTableIds']))
     #event['ResourceProperties']
-    # response = client.modify_vpc_endpoint(
-    #     VpcEndpointId=event['PhysicalResourceId'],
-    #     ResetPolicy=True|False,
-    #     PolicyDocument='string',
-    #     AddRouteTableIds=[
-    #         'string',
-    #     ],
-    #     RemoveRouteTableIds=[
-    #         'string',
-    #     ],
-    #     AddSubnetIds=[
-    #         'string',
-    #     ],
-    #     RemoveSubnetIds=[
-    #         'string',
-    #     ],
-    #     AddSecurityGroupIds=[
-    #         'string',
-    #     ],
-    #     RemoveSecurityGroupIds=[
-    #         'string',
-    #     ],
-    #     PrivateDnsEnabled=True|False
-    # )
+    response = EC2.modify_vpc_endpoint(
+        VpcEndpointId=event['PhysicalResourceId'],
+        # ResetPolicy=True|False,
+        # PolicyDocument='string',
+        AddRouteTableIds=added_route_table_ids,
+        RemoveRouteTableIds=removed_route_table_ids,
+        AddSubnetIds=added_subnets,
+        RemoveSubnetIds=removed_subnets,
+        AddSecurityGroupIds=added_security_group_ids,
+        RemoveSecurityGroupIds=removed_security_group_ids
+        #PrivateDnsEnabled=True|False
+    )
+    print(response)
     return
 
 def lambda_handler(event, context):
@@ -132,6 +140,9 @@ def lambda_handler(event, context):
     elif event['RequestType'] == 'Delete':
         delete(event, context)
     else:
-        update(event, context)
+        try:
+            update(event, context)
+        except:
+            print "error"
         send(event, context, SUCCESS, {},"Updated success", event['PhysicalResourceId'])
     return
