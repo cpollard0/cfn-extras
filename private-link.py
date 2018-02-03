@@ -80,13 +80,20 @@ def create(vars,region,event,context):
             PrivateDnsEnabled=True
         )
         print(response)
-        send(event, context, SUCCESS,{}, "Resource successfully created", response['VpcEndpoint']['VpcEndpointId'])
+        send(event, context, SUCCESS, {}, "Resource successfully created", response['VpcEndpoint']['VpcEndpointId'])
     except:
         send(event, context, FAILED,{})
 
 def delete(event, context):
-    print(event)
-    send(event, context, SUCCESS,{})
+    response = ""
+    try:
+        response = EC2.delete_vpc_endpoints(
+            VpcEndpointIds=event['PhysicalResourceId']
+        )
+        send(event, context, SUCCESS, {}, "Resource deleted")
+    except ClientError as e:
+        print(e)
+        send(event, context, FAILED, {})
 
 def update(event, context):
     response = CFN.describe_stack_resource(StackName=stack_name,LogicalResourceId=resource_id)
