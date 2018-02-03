@@ -56,7 +56,7 @@ def validate_vars(resource_properties, event, context):
             return False
     return True
 
-def create(vars,region):
+def create(vars,region,event,context):
     subnets = []
     security_group_ids = []
     route_table_ids = []
@@ -79,9 +79,10 @@ def create(vars,region):
             SecurityGroupIds=security_group_ids,
             PrivateDnsEnabled=True
         )
-        return True
+        print(response)
+        send(event, context, SUCCESS,{}, "Resource successfully created", response['VpcEndpoint']['VpcEndpointId'])
     except:
-        return False
+        send(event, context, FAILED,{})
 
 def delete(stack_name, resource_id):
     response = CFN.describe_stack_resource(StackName=stack_name,LogicalResourceId=resource_id)
@@ -94,10 +95,8 @@ def update(event, context):
 def lambda_handler(event, context):
     if event['RequestType'] == 'Create':
         if validate_vars(event['ResourceProperties'],event,context):
-            if create(event['ResourceProperties'], parse_region_from_stack(event['StackId'])):
-                send(event, context, SUCCESS,{})
-            else:
-                send(event, context, FAILED,{})
+            create(event['ResourceProperties'], parse_region_from_stack(event['StackId']),event,context)
+                
     elif event['RequestType'] == 'Delete':
         delete(event['StackId'], event['LogicalResourceId'])
         send(event, context, SUCCESS,{})
