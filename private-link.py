@@ -39,7 +39,6 @@ def parse_region_from_stack(stack_name):
     stack = stack_name.replace("arn:aws:cloudformation:","")
     return stack[:stack.find(":")]
 
-# arn:aws:lambda:us-east-1:845909373636:function:private-link-custom-resource
 def validate_vars(resource_properties, event, context):
     print(resource_properties)
     mandatory_vars = ['vpcId','serviceName','ServiceToken']
